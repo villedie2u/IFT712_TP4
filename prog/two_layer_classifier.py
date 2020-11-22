@@ -88,7 +88,16 @@ class TwoLayerClassifier(object):
             #############################################################################
             # TODO: return the most probable class label for one sample.                #
             #############################################################################
-            return 0
+            xx = [1]
+            for el in x[i]:
+                    xx.append(el)
+            print(xx)
+            xarr = np.array(xx)
+            Wx = np.dot(self.W,xarr)
+            #return 0
+            print(int(np.argmax(Wx)-1))
+            return int(np.argmax(Wx)-1) 
+            
             #############################################################################
             #                          END OF YOUR CODE                                 #
             #############################################################################
@@ -97,7 +106,21 @@ class TwoLayerClassifier(object):
             #############################################################################
             # TODO: return the most probable class label for many samples               #
             #############################################################################
-            return np.zeros(x.shape[0])
+            class_label = np.zeros(X.shape[0])
+            length = len(x)
+            for i in range(length):
+                xx = [1]
+                for el in x[i]:
+                    xx.append(el)
+                print(x)
+                xarr = np.array(xx)
+                Wx = np.dot(self.W,xarr)
+                class_label[i] = int(np.argmax(Wx)-1)            
+            
+            print(class_label)
+            #return np.zeros(x.shape[0])
+            return class_label
+        
             #############################################################################
             #                          END OF YOUR CODE                                 #
             #############################################################################
