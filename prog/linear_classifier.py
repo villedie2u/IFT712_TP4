@@ -124,9 +124,14 @@ class LinearClassifier(object):
         accu = 0
         loss = 0
         #############################################################################
-        # TODO: Compute the softmax loss & accuracy for a series of samples X,y .   #
-        #############################################################################
-
+        for i in range(len(X)):
+            if np.shape(X[i]) != np.shape(y[i]):
+                raise ValueError("todo: transposer X pour accéder aux éléments")
+            if self.predict(X[i]) == y[i]:
+                accu += 1
+            loss += self.cross_entropy_loss(X[i], y[i], reg)
+        accu /= len(y)
+        loss /= len(y)
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
