@@ -243,7 +243,36 @@ class TwoLayerNet(object):
         # 3- Dont forget the regularization!                                        #
         # 4- Compute gradient with respect to the score => eq.(4.109) with phi_n=1  #
         #############################################################################
-
+        #1 - Softmax
+        a = np.copy(scores)
+        #print("W.shape : ",self.W.shape," a.shape : ", a.shape)
+        y0 = []
+        
+        sum_a = 0
+        for aj in a:
+            sum_a += np.exp(aj)        
+        for k in range(a.shape[0]):
+            y0.append(np.exp(a[k])/sum_a)
+            
+        print("x : ",x," W : ",self.W," y0 : ",y0," dW : ",dW)
+        #2 - Cross-entropy Loss    
+        #Pas sûr de ça 
+        loss = - np.log(y0[y])/np.log(10)
+        
+        
+        #3 - Regularisation
+        regularization =reg*((np.linalg.norm(self.W))**2)
+        loss += regularization
+        
+        #4 - Compute gradient
+            
+        for i in range(0, dloss_dscores.shape[0]):
+            if (i == y):
+                dloss_dscores[i] = (y0[i] - 1)
+            else:
+                dloss_dscores[i] = y0[i]
+        
+        
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################

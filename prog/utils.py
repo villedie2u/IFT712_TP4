@@ -125,7 +125,7 @@ def plot_curves(loss_train_curve, loss_val_curve, accu_train_curve, accu_val_cur
     plt.plot(xdata, accu_val_curve, label='validation')
     plt.xticks(xdata)
     plt.legend()
-    plt.show()
+    plt.show(block=False)
 
 
 def bend_data(X, angle_delta, radius_min, radius_delta):
