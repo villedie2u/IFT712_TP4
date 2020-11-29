@@ -95,9 +95,11 @@ class LinearClassifier(object):
         length = len(X)
         for i in range(length):
             x = [1]
+            print("X[i] : ",X[i])
             for el in X[i]:
+                print("el : ",el)
                 x.append(el)
-            print(x)
+            print("x : ",x)
             xarr = np.array(x)
             Wx = np.dot(self.W,xarr)
             class_label[i] = int(np.argmax(Wx)-1)
@@ -124,14 +126,9 @@ class LinearClassifier(object):
         accu = 0
         loss = 0
         #############################################################################
-        for i in range(len(X)):
-            if np.shape(X[i]) != np.shape(y[i]):
-                raise ValueError("todo: transposer X pour accéder aux éléments")
-            if self.predict(X[i]) == y[i]:
-                accu += 1
-            loss += self.cross_entropy_loss(X[i], y[i], reg)
-        accu /= len(y)
-        loss /= len(y)
+        # TODO: Compute the softmax loss & accuracy for a series of samples X,y .   #
+        #############################################################################
+
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
@@ -164,26 +161,37 @@ class LinearClassifier(object):
         # 3- Dont forget the regularization!                                        #
         # 4- Compute gradient => eq.(4.109)                                         #
         #############################################################################
-
-        #1 - Softmax
-        a = np.dot(self.W,x)
         
+        #1 - Softmax
+        a = np.dot(self.W.T,x)
+        #print("W.shape : ",self.W.shape," a.shape : ", a.shape)
         y0 = []
         
+        sum_a = 0
+        for aj in a:
+            sum_a += np.exp(aj)        
         for k in range(a.shape[0]):
-            sum_a = 0
-            for aj in a:
-                sum_a += np.exp(aj)
             y0.append(np.exp(a[k])/sum_a)
             
+        print("x : ",x," W : ",self.W," y0 : ",y0)
         #2 - Cross-entropy Loss    
         #Pas sûr de ça 
         loss = - np.log(y0[y])/np.log(10)
         
+        
         #3 - Regularisation
-        regularization =reg*(np.linalg.norm(self.W))
+        regularization =reg*((np.linalg.norm(self.W))**2)
         loss += regularization
-
+        
+        #4 - Compute gradient
+            
+        for i in range(0, dW.shape[1]):
+            if (i == y):
+                dW[:,i] = (y0[i] - 1)*x
+            else:
+                dW[:,i] = y0[i]*x
+        
+        
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
