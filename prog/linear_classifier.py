@@ -165,6 +165,25 @@ class LinearClassifier(object):
         # 4- Compute gradient => eq.(4.109)                                         #
         #############################################################################
 
+        #1 - Softmax
+        a = np.dot(self.W,x)
+        
+        y0 = []
+        
+        for k in range(a.shape[0]):
+            sum_a = 0
+            for aj in a:
+                sum_a += np.exp(aj)
+            y0.append(np.exp(a[k])/sum_a)
+            
+        #2 - Cross-entropy Loss    
+        #Pas sûr de ça 
+        loss = - np.log(y0[y])/np.log(10)
+        
+        #3 - Regularisation
+        regularization =reg*(np.linalg.norm(self.W))
+        loss += regularization
+
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################

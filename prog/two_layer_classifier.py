@@ -89,7 +89,7 @@ class TwoLayerClassifier(object):
             # TODO: return the most probable class label for one sample.                #
             #############################################################################
             xx = [1]
-            for el in x[i]:
+            for el in x:
                     xx.append(el)
             print(xx)
             xarr = np.array(xx)
@@ -106,7 +106,7 @@ class TwoLayerClassifier(object):
             #############################################################################
             # TODO: return the most probable class label for many samples               #
             #############################################################################
-            class_label = np.zeros(X.shape[0])
+            class_label = np.zeros(x.shape[0])
             length = len(x)
             for i in range(length):
                 xx = [1]
