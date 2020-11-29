@@ -129,7 +129,7 @@ class LinearClassifier(object):
                 raise ValueError("todo: transposer X pour accéder aux éléments")
             if self.predict(X[i]) == y[i]:
                 accu += 1
-            loss += self.cross_entropy_loss(X[i], y[i], reg)
+            loss += self.cross_entropy_loss(X[i], y[i], reg)[0]
         accu /= len(y)
         loss /= len(y)
         #############################################################################
