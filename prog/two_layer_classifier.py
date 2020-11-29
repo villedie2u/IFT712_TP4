@@ -89,12 +89,12 @@ class TwoLayerClassifier(object):
             # TODO: return the most probable class label for one sample.                #
             #############################################################################
             xx = [1]
-            for el in x[i]:
+            for el in x:
                     xx.append(el)
             print(xx)
             xarr = np.array(xx)
-            Wx = np.dot(self.W,xarr)
-            #return 0
+            Wx = np.dot(self.W, xarr)
+            # return 0
             print(int(np.argmax(Wx)-1))
             return int(np.argmax(Wx)-1) 
             
@@ -106,7 +106,7 @@ class TwoLayerClassifier(object):
             #############################################################################
             # TODO: return the most probable class label for many samples               #
             #############################################################################
-            class_label = np.zeros(X.shape[0])
+            class_label = np.zeros(x.shape[0])
             length = len(x)
             for i in range(length):
                 xx = [1]
@@ -114,11 +114,11 @@ class TwoLayerClassifier(object):
                     xx.append(el)
                 print(x)
                 xarr = np.array(xx)
-                Wx = np.dot(self.W,xarr)
+                Wx = np.dot(self.W, xarr)
                 class_label[i] = int(np.argmax(Wx)-1)            
             
             print(class_label)
-            #return np.zeros(x.shape[0])
+            # return np.zeros(x.shape[0])
             return class_label
         
             #############################################################################
@@ -143,10 +143,14 @@ class TwoLayerClassifier(object):
         loss = 0
         accu = 0
         #############################################################################
-        # TODO: Compute the softmax loss & accuracy for a series of samples X,y .   #
-        #############################################################################
-
-        #############################################################################
+        for i in range(len(x)):
+            if np.shape(x[i]) != np.shape(y[i]):
+                raise ValueError("todo: transposer X pour accéder aux éléments")
+            if self.predict(x[i]) == y[i]:
+                accu += 1
+            loss += self.net.cross_entropy_loss(self.predict(x[i]), y[i])
+        accu /= len(y)
+        loss /= len(y)
         #                          END OF YOUR CODE                                 #
         #############################################################################
         return accu, loss
@@ -170,6 +174,7 @@ class TwoLayerClassifier(object):
         #                          END OF YOUR CODE                                 #
         #############################################################################
         self.momentum_cache_v_prev[id(w)] = v
+
 
 class TwoLayerNet(object):
     """
@@ -226,7 +231,7 @@ class TwoLayerNet(object):
         - loss as single float
         - gradient with respect to score; an array of same shape of scores
         """
-
+        # pour la régu utiliser self.l2_reg
         loss = 999.9
         dloss_dscores = np.zeros(np.size(scores))
 
