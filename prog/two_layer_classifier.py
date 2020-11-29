@@ -91,11 +91,11 @@ class TwoLayerClassifier(object):
             xx = [1]
             for el in x:
                     xx.append(el)
-            print(xx)
+            #print(xx)
             xarr = np.array(xx)
-            Wx = np.dot(self.W, xarr)
-            # return 0
-            print(int(np.argmax(Wx)-1))
+            Wx = np.dot(self.W,xarr)
+            #return 0
+            #print(int(np.argmax(Wx)-1))
             return int(np.argmax(Wx)-1) 
             
             #############################################################################
@@ -112,13 +112,13 @@ class TwoLayerClassifier(object):
                 xx = [1]
                 for el in x[i]:
                     xx.append(el)
-                print(x)
+                #print(x)
                 xarr = np.array(xx)
-                Wx = np.dot(self.W, xarr)
+                Wx = np.dot(self.W,xarr)
                 class_label[i] = int(np.argmax(Wx)-1)            
             
-            print(class_label)
-            # return np.zeros(x.shape[0])
+            #print(class_label)
+            #return np.zeros(x.shape[0])
             return class_label
         
             #############################################################################
@@ -143,14 +143,10 @@ class TwoLayerClassifier(object):
         loss = 0
         accu = 0
         #############################################################################
-        for i in range(len(x)):
-            if np.shape(x[i]) != np.shape(y[i]):
-                raise ValueError("todo: transposer X pour accéder aux éléments")
-            if self.predict(x[i]) == y[i]:
-                accu += 1
-            loss += self.net.cross_entropy_loss(self.predict(x[i]), y[i])
-        accu /= len(y)
-        loss /= len(y)
+        # TODO: Compute the softmax loss & accuracy for a series of samples X,y .   #
+        #############################################################################
+
+        #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
         return accu, loss
@@ -174,7 +170,6 @@ class TwoLayerClassifier(object):
         #                          END OF YOUR CODE                                 #
         #############################################################################
         self.momentum_cache_v_prev[id(w)] = v
-
 
 class TwoLayerNet(object):
     """
@@ -231,7 +226,7 @@ class TwoLayerNet(object):
         - loss as single float
         - gradient with respect to score; an array of same shape of scores
         """
-        # pour la régu utiliser self.l2_reg
+
         loss = 999.9
         dloss_dscores = np.zeros(np.size(scores))
 
@@ -243,6 +238,7 @@ class TwoLayerNet(object):
         # 3- Dont forget the regularization!                                        #
         # 4- Compute gradient with respect to the score => eq.(4.109) with phi_n=1  #
         #############################################################################
+
         #1 - Softmax
         a = np.copy(scores)
         #print("W.shape : ",self.W.shape," a.shape : ", a.shape)
@@ -254,14 +250,14 @@ class TwoLayerNet(object):
         for k in range(a.shape[0]):
             y0.append(np.exp(a[k])/sum_a)
             
-        print("x : ",x," W : ",self.W," y0 : ",y0," dW : ",dW)
+        #print("x : ",x," W : ",self.W," y0 : ",y0," dW : ",dW)
         #2 - Cross-entropy Loss    
         #Pas sûr de ça 
         loss = - np.log(y0[y])/np.log(10)
         
         
         #3 - Regularisation
-        regularization =reg*((np.linalg.norm(self.W))**2)
+        regularization =self.l2_reg*((np.linalg.norm(self.W))**2)
         loss += regularization
         
         #4 - Compute gradient
