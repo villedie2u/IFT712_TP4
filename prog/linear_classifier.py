@@ -95,11 +95,11 @@ class LinearClassifier(object):
         length = len(X)
         for i in range(length):
             x = [1]
-            print("X[i] : ",X[i])
+            # print("X[i] : ",X[i])
             for el in X[i]:
-                print("el : ",el)
+                # print("el : ",el)
                 x.append(el)
-            print("x : ", x)
+            # print("x : ", x)
             xarr = np.array(x)
             Wx = np.dot(self.W, xarr)
             class_label[i] = int(np.argmax(Wx)-1)
@@ -126,10 +126,9 @@ class LinearClassifier(object):
         accu = 0
         loss = 0
         #############################################################################
+        predictions = self.predict(X)
         for i in range(len(X)):
-            if np.shape(X[i]) != np.shape(y[i]):
-                raise ValueError("todo: transposer X pour accéder aux éléments")
-            if self.predict(X[i]) == y[i]:
+            if predictions[i] == y[i]:
                 accu += 1
             loss += self.cross_entropy_loss(X[i], y[i], reg)[0]
         accu /= len(y)
@@ -168,6 +167,8 @@ class LinearClassifier(object):
         #############################################################################
         
         # 1 - Softmax
+        if len(x) != 3:
+            x = np.insert(x, 0, 1)
         a = np.dot(self.W.T, x)
         # print("W.shape : ",self.W.shape," a.shape : ", a.shape)
         y0 = []
@@ -178,7 +179,8 @@ class LinearClassifier(object):
         for k in range(a.shape[0]):
             y0.append(np.exp(a[k])/sum_a)
             
-        print("x : ", x, " W : ", self.W, " y0 : ", y0)
+        # print("x : ", x, " W : ", self.W, " y0 : ", y0)
+
         #2 - Cross-entropy Loss    
         #Pas sûr de ça 
         loss = - np.log(y0[y])/np.log(10)
@@ -189,7 +191,8 @@ class LinearClassifier(object):
         loss += regularization
         
         # 4 - Compute gradient
-            
+        if len(x) != 3:
+            x = np.insert(x, 0, 1)
         for i in range(0, dW.shape[1]):
             if i == y:
                 dW[:, i] = (y0[i] - 1) * x
