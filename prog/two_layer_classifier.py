@@ -239,6 +239,7 @@ class TwoLayerNet(object):
         # 4- Compute gradient with respect to the score => eq.(4.109) with phi_n=1  #
         #############################################################################
 
+
         #1 - Softmax
         a = np.copy(scores)
         #print("W.shape : ",self.W.shape," a.shape : ", a.shape)
@@ -255,9 +256,20 @@ class TwoLayerNet(object):
         #Pas sûr de ça 
         loss = - np.log(y0[y])/np.log(10)
         
-        
+        W1 =self.parameters[0]
+        W2 =self.parameters[1]
         #3 - Regularisation
-        regularization =self.l2_reg*((np.linalg.norm(self.W))**2)
+        print("W1 : ",W1)
+        print("shape W1 : ",np.shape(W1))
+        print("W2 : ",W2)
+        print("shape W2 : ",np.shape(W2))
+        Norme1= np.linalg.norm(np.array(W1))
+        Norme2= np.linalg.norm(np.array(W2))
+        print("Norme1 :",Norme1)
+        print("Norme2 :",Norme2)
+        Moyenne_Norme = Norme1 + Norme2
+        
+        regularization =self.l2_reg*((Norme1 + Norme2)/2)**2
         loss += regularization
         
         #4 - Compute gradient
