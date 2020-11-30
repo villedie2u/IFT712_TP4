@@ -58,7 +58,9 @@ class LinearClassifier(object):
             loss_train, dW = self.cross_entropy_loss(x_sample, y_sample, l2_reg)
 
             # Take gradient step
+            # print("\t\t", y_sample, np.dot(self.W, x_sample), end="->")
             self.W -= lr * dW
+            # print(np.dot(self.W, x_sample))
 
             # Advance in data
             sample_idx += 1
@@ -107,7 +109,7 @@ class LinearClassifier(object):
         indice = 0
         for xi in X:
             if len(xi) != 3:
-                xi = np.insert(xi, 0, 1)
+                xi = augment(xi)
             class_label[indice] = np.argmax(np.dot(self.W, xi))
             indice += 1
 
@@ -183,7 +185,7 @@ class LinearClassifier(object):
         
         sum_a = 0
         for aj in a:
-            sum_a += np.exp(aj)        
+            sum_a += np.exp(aj)
         for k in range(a.shape[0]):
             y0.append(np.exp(a[k])/sum_a)
             
@@ -203,14 +205,20 @@ class LinearClassifier(object):
             x = np.insert(x, 0, 1)
         for i in range(0, dW.shape[1]):
             if i == y:
-                dW[:, i] = (y0[i] - 1) * x
+                dW[i, :] = (y0[i] - 1) * x
             else:
-                dW[:, i] = y0[i] * x
+                dW[i, :] = y0[i] * x
         
-        
+        # print("x:", x)
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
+        if np.argmax(np.dot(self.W, x)) == y:
+            # dW = 0
+            None
+        else:
+            # print(y, np.dot(self.W, x), "->", np.dot(self.W - dW, x))
+            None
         return loss, dW
 
 
