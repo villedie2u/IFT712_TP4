@@ -91,7 +91,7 @@ class LinearClassifier(object):
         #############################################################################
         # TODO: Return the best class label.                                        #
         #############################################################################
-        
+        """
         length = len(X)
         for i in range(length):
             x = [1]
@@ -102,7 +102,15 @@ class LinearClassifier(object):
             # print("x : ", x)
             xarr = np.array(x)
             Wx = np.dot(self.W, xarr)
-            class_label[i] = int(np.argmax(Wx)-1)
+            class_label[i] = int(np.argmax(Wx))
+        """
+        indice = 0
+        for xi in X:
+            if len(xi) != 3:
+                xi = np.insert(xi, 0, 1)
+            class_label[indice] = np.argmax(np.dot(self.W, xi))
+            indice += 1
+
         
         
         
