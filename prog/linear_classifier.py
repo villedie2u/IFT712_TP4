@@ -93,19 +93,6 @@ class LinearClassifier(object):
         #############################################################################
         # TODO: Return the best class label.                                        #
         #############################################################################
-        """
-        length = len(X)
-        for i in range(length):
-            x = [1]
-            # print("X[i] : ",X[i])
-            for el in X[i]:
-                # print("el : ",el)
-                x.append(el)
-            # print("x : ", x)
-            xarr = np.array(x)
-            Wx = np.dot(self.W, xarr)
-            class_label[i] = int(np.argmax(Wx))
-        """
         indice = 0
         for xi in X:
             if len(xi) != 3:
@@ -141,14 +128,11 @@ class LinearClassifier(object):
             if predictions[i] == y[i]:
                 accu += 1
             loss += self.cross_entropy_loss(X[i], y[i], reg=0)[0]  # pour ne pas ajouter le terme de régularisation sur chaque terme
-        # print("pred:", predictions[:20])
-        # print("y:", y[:20])
-        # print("test accu:", accu, "/", len(y))
+
         accu /= len(y)
         loss /= len(y)
         loss += reg*((np.linalg.norm(self.W))**2)  # pour ajouter la régularisation une fois que la somme est faite
-        # print(accu, loss, reg)
-        # print("")
+
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
@@ -186,7 +170,6 @@ class LinearClassifier(object):
         if len(x) != 3:
             x = augment(x)
         a = np.dot(self.W.T, x)
-        # print("W.shape : ",self.W.shape," a.shape : ", a.shape)
         y0 = []
         
         sum_a = 0
@@ -200,12 +183,9 @@ class LinearClassifier(object):
             if a[k] >= 250:  # pour éviter les overflow
                 a[k] = 250
             y0.append(np.exp(a[k])/sum_a)
-            
-        # print("x : ", x, " W : ", self.W, " y0 : ", y0)
 
         #2 - Cross-entropy Loss    
-        if y0[y] == 0:
-            # pour éviter les divisions par 0
+        if y0[y] == 0:  # pour éviter les divisions par 0
             y0[y] = 1e-5
         loss = - np.log(y0[y])
         
