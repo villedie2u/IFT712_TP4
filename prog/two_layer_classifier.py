@@ -10,7 +10,6 @@ class TwoLayerClassifier(object):
 
         self.num_features = num_features
         self.num_classes = num_classes
-
         self.net = TwoLayerNet(num_features, num_hidden_neurons, num_classes, activation)
 
         self.momentum_cache_v_prev = {}
@@ -51,16 +50,19 @@ class TwoLayerClassifier(object):
             y_sample = self.y_train[sample_idx]
 
             # Forward + Backward
+
             loss_train = self.net.forward_backward(x_sample, y_sample)
 
             # Take gradient step
+            if y_sample == 2:
+                print("test:", y_sample, self.net.forward(x_sample), end='->')
             for w, dw in zip(self.net.parameters, self.net.gradients):
                 self.momentum_update(w, dw, lr, momentum)
-
+            if y_sample == 2:
+                print(self.net.forward(x_sample), "\n")
             # Advance in data
             sample_idx += 1
             if sample_idx >= len(self.x_train):  # End of epoch
-
                 accu_train, loss_train = self.global_accuracy_and_cross_entropy_loss(self.x_train, self.y_train)
                 accu_val, loss_val, = self.global_accuracy_and_cross_entropy_loss(self.x_val, self.y_val)
 
@@ -88,15 +90,9 @@ class TwoLayerClassifier(object):
             #############################################################################
             # TODO: return the most probable class label for one sample.                #
             #############################################################################
-            xx = [1]
-            for el in x:
-                    xx.append(el)
-            #print(xx)
-            xarr = np.array(xx)
-            Wx = np.dot(self.W,xarr)
-            #return 0
-            #print(int(np.argmax(Wx)-1))
-            return int(np.argmax(Wx)-1) 
+            if len(x) != 3:
+                x = augment(x)
+            return np.argmax(self.net.forward(x))
             
             #############################################################################
             #                          END OF YOUR CODE                                 #
@@ -107,18 +103,12 @@ class TwoLayerClassifier(object):
             # TODO: return the most probable class label for many samples               #
             #############################################################################
             class_label = np.zeros(x.shape[0])
-            length = len(x)
-            for i in range(length):
-                xx = [1]
-                for el in x[i]:
-                    xx.append(el)
-                #print(x)
-                xarr = np.array(xx)
-                Wx = np.dot(self.W,xarr)
-                class_label[i] = int(np.argmax(Wx)-1)            
-            
-            #print(class_label)
-            #return np.zeros(x.shape[0])
+            indice = 0
+            for xi in x:
+                if len(xi) != 3:
+                    xi = augment(xi)
+                class_label[indice] = np.argmax(self.net.forward(xi))
+                indice += 1
             return class_label
         
             #############################################################################
@@ -145,7 +135,17 @@ class TwoLayerClassifier(object):
         #############################################################################
         # TODO: Compute the softmax loss & accuracy for a series of samples X,y .   #
         #############################################################################
+        predictions = self.predict(x)
+        scores = [self.net.forward(xi) for xi in x]
+        for i in range(len(predictions)):
+            if predictions[i] == y[i]:
+                accu += 1
+            self.net.l2_reg = 0  # pour ne pas ajouter le terme de régularisation sur chaque terme
+            loss += self.net.cross_entropy_loss(scores[i], y[i])[0]
 
+        accu /= len(y)
+        loss /= len(y)
+        loss += l2_r * ((np.linalg.norm(self.net.layer1.W) + np.linalg.norm(self.net.layer2.W))/2 ** 2)  # pour ajouter la régularisation une fois que la somme est faite
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
@@ -161,15 +161,14 @@ class TwoLayerClassifier(object):
 
         Returns nothing
         """
-
         v_prev = self.momentum_cache_v_prev[id(w)]
         #############################################################################
-        v = mu * self.momentum_cache_v_prev - lr * dw
-        w += v_prev
+        dw = mu * v_prev - lr * dw
+        w += dw
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
-        self.momentum_cache_v_prev[id(w)] = v
+        self.momentum_cache_v_prev[id(w)] = dw
 
 class TwoLayerNet(object):
     """
@@ -242,40 +241,39 @@ class TwoLayerNet(object):
 
         #1 - Softmax
         a = np.copy(scores)
-        #print("W.shape : ",self.W.shape," a.shape : ", a.shape)
         y0 = []
         
         sum_a = 0
         for aj in a:
+            if aj >= 250:  # pour éviter les overflow
+                aj = 250
             sum_a += np.exp(aj)        
         for k in range(a.shape[0]):
+            if sum_a == 0:  # pour éviter de diviser par 0
+                sum_a = 0.001
+            if a[k] >= 250:  # pour éviter les overflow
+                a[k] = 250
             y0.append(np.exp(a[k])/sum_a)
-            
-        #print("x : ",x," W : ",self.W," y0 : ",y0," dW : ",dW)
-        #2 - Cross-entropy Loss    
-        #Pas sûr de ça 
-        loss = - np.log(y0[y])/np.log(10)
+
+        #2 - Cross-entropy Loss
+        if y0[y] == 0:  # pour éviter les divisions par 0
+            y0[y] = 1e-5
+        loss = - np.log(y0[y])
         
-        W1 =self.parameters[0]
-        W2 =self.parameters[1]
+        W1 = self.parameters[0]
+        W2 = self.parameters[1]
+
         #3 - Regularisation
-        print("W1 : ",W1)
-        print("shape W1 : ",np.shape(W1))
-        print("W2 : ",W2)
-        print("shape W2 : ",np.shape(W2))
-        Norme1= np.linalg.norm(np.array(W1))
-        Norme2= np.linalg.norm(np.array(W2))
-        print("Norme1 :",Norme1)
-        print("Norme2 :",Norme2)
-        Moyenne_Norme = Norme1 + Norme2
+        Norme1 = np.linalg.norm(np.array(W1))
+        Norme2 = np.linalg.norm(np.array(W2))
         
-        regularization =self.l2_reg*((Norme1 + Norme2)/2)**2
+        regularization = self.l2_reg*((Norme1 + Norme2)/2)**2
         loss += regularization
         
         #4 - Compute gradient
             
         for i in range(0, dloss_dscores.shape[0]):
-            if (i == y):
+            if i == y:
                 dloss_dscores[i] = (y0[i] - 1)
             else:
                 dloss_dscores[i] = y0[i]
@@ -296,8 +294,8 @@ class DenseLayer(object):
         self.activation = activation  # Note, 'relu', or 'sigmoid'
         self.W = None
         self.dW = None
-        self.in_size = in_size # number of input neurons
-        self.out_size = out_size # number of output neurons
+        self.in_size = in_size  # number of input neurons
+        self.out_size = out_size  # number of output neurons
         self.reinit()
 
         self.last_x = None
@@ -323,20 +321,27 @@ class DenseLayer(object):
         Returns a tuple of:
         - f: a floating point value
         """
-        x = augment(x)
         #############################################################################
         # TODO: Compute forward pass.  Do not forget to add 1 to x in case of bias  #
         # C.f. function augment(x)                                                  #
         #############################################################################
-        f = self.W[1] ## REMOVE THIS LINE
+        if x.shape[0] != self.W.shape[0]:  # bias if needed
+            x = augment(x)
 
+        fp = np.dot(x, self.W)  # sortie couche
+
+        if self.activation == "relu":  # sortie fonction d'activation
+            for i in range(len(fp)):
+                fp[i] = relu(fp[i])
+        else:
+            for i in range(len(fp)):
+                fp[i] = sigmoid(fp[i])
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
         self.last_x = x
-        self.last_activ = f
-
-        return f
+        self.last_activ = self.W[0]
+        return fp
 
     def backward(self, dnext_dout, l2_reg):
         if self.activation == 'sigmoid':
@@ -368,3 +373,7 @@ def augment(x):
 
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
+
+
+def relu(x):
+    return max(x, 0)
