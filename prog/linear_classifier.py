@@ -55,7 +55,7 @@ class LinearClassifier(object):
                 x_sample = augment(x_sample)
 
             # Compute loss and gradient of loss
-            loss_train, dW = self.cross_entropy_loss(x_sample, y_sample, l2_reg)
+            loss_train, dW = self.cross_entropy_loss(x_sample, y_sample, reg=l2_reg)
 
             # Take gradient step
             # print("\t\t", y_sample, np.dot(self.W, x_sample), end="->")
@@ -66,8 +66,8 @@ class LinearClassifier(object):
             sample_idx += 1
             if sample_idx >= len(self.x_train):  # End of epoch
 
-                accu_train, loss_train = self.global_accuracy_and_cross_entropy_loss(self.x_train, self.y_train, l2_reg)
-                accu_val, loss_val, = self.global_accuracy_and_cross_entropy_loss(self.x_val, self.y_val, l2_reg)
+                accu_train, loss_train = self.global_accuracy_and_cross_entropy_loss(self.x_train, self.y_train, reg=l2_reg)
+                accu_val, loss_val, = self.global_accuracy_and_cross_entropy_loss(self.x_val, self.y_val, reg=l2_reg)
 
                 loss_train_curve.append(loss_train)
                 loss_val_curve.append(loss_val)
@@ -137,12 +137,18 @@ class LinearClassifier(object):
         loss = 0
         #############################################################################
         predictions = self.predict(X)
-        for i in range(len(X)):
+        for i in range(len(predictions)):
             if predictions[i] == y[i]:
                 accu += 1
-            loss += self.cross_entropy_loss(X[i], y[i], reg)[0]
+            loss += self.cross_entropy_loss(X[i], y[i], reg=0)[0]  # pour ne pas ajouter le terme de régularisation sur chaque terme
+        # print("pred:", predictions[:20])
+        # print("y:", y[:20])
+        # print("test accu:", accu, "/", len(y))
         accu /= len(y)
         loss /= len(y)
+        loss += reg*((np.linalg.norm(self.W))**2)  # pour ajouter la régularisation une fois que la somme est faite
+        # print(accu, loss, reg)
+        # print("")
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
@@ -178,23 +184,30 @@ class LinearClassifier(object):
         
         # 1 - Softmax
         if len(x) != 3:
-            x = np.insert(x, 0, 1)
+            x = augment(x)
         a = np.dot(self.W.T, x)
         # print("W.shape : ",self.W.shape," a.shape : ", a.shape)
         y0 = []
         
         sum_a = 0
         for aj in a:
+            if aj >= 250:  # pour éviter les overflow
+                aj = 250
             sum_a += np.exp(aj)
         for k in range(a.shape[0]):
+            if sum_a == 0:  # pour éviter de diviser par 0
+                sum_a = 0.001
+            if a[k] >= 250:  # pour éviter les overflow
+                a[k] = 250
             y0.append(np.exp(a[k])/sum_a)
             
         # print("x : ", x, " W : ", self.W, " y0 : ", y0)
 
         #2 - Cross-entropy Loss    
-        #Pas sûr de ça 
-        loss = - np.log(y0[y])/np.log(10)
-        
+        if y0[y] == 0:
+            # pour éviter les divisions par 0
+            y0[y] = 1e-5
+        loss = - np.log(y0[y])
         
         # 3 - Regularisation
         regularization = reg * ((np.linalg.norm(self.W))**2)
@@ -202,23 +215,17 @@ class LinearClassifier(object):
         
         # 4 - Compute gradient
         if len(x) != 3:
-            x = np.insert(x, 0, 1)
+            x = augment(x)
         for i in range(0, dW.shape[1]):
             if i == y:
                 dW[i, :] = (y0[i] - 1) * x
             else:
                 dW[i, :] = y0[i] * x
         
-        # print("x:", x)
+        dW += 2*reg*dW  # régularisation selon la formule p.4 du "kit de survie"
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
-        if np.argmax(np.dot(self.W, x)) == y:
-            # dW = 0
-            None
-        else:
-            # print(y, np.dot(self.W, x), "->", np.dot(self.W - dW, x))
-            None
         return loss, dW
 
 
