@@ -311,8 +311,7 @@ def main():
 
 	# CELL 16
 	num_hidden_neurons = 10
-	model = TwoLayerClassifier(X_train, y_train, X_val, y_val,
-	                           num_features=2, num_hidden_neurons=num_hidden_neurons, num_classes=num_classes)
+	model = TwoLayerClassifier(X_train, y_train, X_val, y_val, num_features=2, num_hidden_neurons=num_hidden_neurons, num_classes=num_classes)
 
 
 
@@ -338,7 +337,7 @@ def main():
 	# Vérifier que le fait d'augmenter la régularisation L2 augmente également la loss
 	for l2_r in np.arange(0,2,0.1):
 	    _, loss = model.global_accuracy_and_cross_entropy_loss(X_train,y_train, l2_r)
-	    print('l2_reg= {:.4f} >> Loss/accuracy d\'entraînement : {:.3f}'.format(l2_r,loss))
+	    # print('l2_reg= {:.4f} >> Loss/accuracy d\'entraînement : {:.3f}'.format(l2_r,loss))
 
 
     # CELL 19
@@ -347,13 +346,8 @@ def main():
 	n_check = 5
 	X_check = X_train[:n_check]
 	y_check = y_train[:n_check]
-	model = TwoLayerClassifier( X_check, y_check, X_val, y_val,
-	    num_features=2, num_hidden_neurons=num_hidden_neurons, num_classes=num_classes
-	)
-	print(y_check)
-	print(model.predict(X_check))
+	model = TwoLayerClassifier( X_check, y_check, X_val, y_val, num_features=2, num_hidden_neurons=num_hidden_neurons, num_classes=num_classes)
 	loss_train_curve, loss_val_curve, accu_train_curve, accu_val_curve = model.train(num_epochs=200, lr=0.01, l2_reg=0.0)
-	print(model.predict(X_check))
 	print('Accuracy d\'entraînement, devrait être 1.0: {:.3f}'.format(accu_train_curve[-1]))
 	if accu_train_curve[-1] < 0.98:
 	    print('ATTENTION: L\'accuracy n\'est pas 100%.')
@@ -361,15 +355,14 @@ def main():
 	else:
 	    print('SUCCÈS')
 
-	"""
+
 	# CELL 20
 	# Vérifier que le fait d'entraîner avec une régularisation L2 croissante augmente la loss et, éventuellement, diminue l'accuracy
 	for l2_r in np.arange(0,1,0.1):
 	    loss_train_curve, loss_val_curve, accu_train_curve, accu_val_curve = model.train(num_epochs=200, lr=0.01, l2_reg=l2_r)
 	    print('l2_reg= {:.4f} >> Loss/accuracy d\'entraînement : {:.3f} {:.3f}'.format(l2_r,loss_train_curve[-1],accu_train_curve[-1]))
 
-
-
+	"""
     # CELL 21
     # On instancie notre modèle; cette fois-ci avec les données complètes.
 	num_hidden_neurons = 20

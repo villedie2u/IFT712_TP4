@@ -54,18 +54,13 @@ class TwoLayerClassifier(object):
             loss_train = self.net.forward_backward(x_sample, y_sample)
 
             # Take gradient step
-            if y_sample == 2:
-                print("test:", y_sample, self.net.forward(x_sample), end='->')
             for w, dw in zip(self.net.parameters, self.net.gradients):
                 self.momentum_update(w, dw, lr, momentum)
-            if y_sample == 2:
-                print(self.net.forward(x_sample), "\n")
             # Advance in data
             sample_idx += 1
             if sample_idx >= len(self.x_train):  # End of epoch
                 accu_train, loss_train = self.global_accuracy_and_cross_entropy_loss(self.x_train, self.y_train)
                 accu_val, loss_val, = self.global_accuracy_and_cross_entropy_loss(self.x_val, self.y_val)
-
                 loss_train_curve.append(loss_train)
                 loss_val_curve.append(loss_val)
                 accu_train_curve.append(accu_train)
@@ -115,7 +110,7 @@ class TwoLayerClassifier(object):
             #                          END OF YOUR CODE                                 #
             #############################################################################
 
-    def global_accuracy_and_cross_entropy_loss(self, x, y, l2_r=-1.0):
+    def global_accuracy_and_cross_entropy_loss(self, x, y, l2_r=0.0):
         """
         Compute average accuracy and cross_entropy for a series of N data points.
         Naive implementation (with loop)
@@ -127,8 +122,10 @@ class TwoLayerClassifier(object):
         - average accuracy as single float
         - average loss as single float
         """
-        if l2_r > 0:
+        if l2_r >= 0.0:
             self.net.l2_reg = l2_r
+        else:
+            self.net.l2_reg = 0
 
         loss = 0
         accu = 0
@@ -142,10 +139,9 @@ class TwoLayerClassifier(object):
                 accu += 1
             self.net.l2_reg = 0  # pour ne pas ajouter le terme de régularisation sur chaque terme
             loss += self.net.cross_entropy_loss(scores[i], y[i])[0]
-
         accu /= len(y)
         loss /= len(y)
-        loss += l2_r * ((np.linalg.norm(self.net.layer1.W) + np.linalg.norm(self.net.layer2.W))/2 ** 2)  # pour ajouter la régularisation une fois que la somme est faite
+        # loss += l2_r * ((np.linalg.norm(self.net.layer1.W) + np.linalg.norm(self.net.layer2.W))/2 ** 2)  # pour ajouter la régularisation une fois que la somme est faite
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
@@ -163,12 +159,12 @@ class TwoLayerClassifier(object):
         """
         v_prev = self.momentum_cache_v_prev[id(w)]
         #############################################################################
-        dw = mu * v_prev - lr * dw
-        w += dw
+        v = mu * v_prev - lr * dw
+        w += v
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
-        self.momentum_cache_v_prev[id(w)] = dw
+        self.momentum_cache_v_prev[id(w)] = v
 
 class TwoLayerNet(object):
     """
@@ -328,14 +324,21 @@ class DenseLayer(object):
         if x.shape[0] != self.W.shape[0]:  # bias if needed
             x = augment(x)
 
-        fp = np.dot(x, self.W)  # sortie couche
+        fp = np.dot(self.W.T, x)  # sortie couche
 
         if self.activation == "relu":  # sortie fonction d'activation
             for i in range(len(fp)):
                 fp[i] = relu(fp[i])
-        else:
+        """
+        else:  # softmax pour la sortie
+            sumfp = 0
             for i in range(len(fp)):
-                fp[i] = sigmoid(fp[i])
+                if fp[i] >= 250:  # pour éviter d'overflow
+                    fp[i] = 250
+                sumfp += np.exp(fp[i])
+            for i in range(len(fp)):
+                fp[i] = np.exp(fp[i])/sumfp
+        """
         #############################################################################
         #                          END OF YOUR CODE                                 #
         #############################################################################
